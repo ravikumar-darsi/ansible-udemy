@@ -1,0 +1,25 @@
+---
+- name: Understanding the vars
+  hosts: all
+  become:
+    yes
+    #vars:
+    #USRNM: playuser
+    #COMM: variable from playbook
+  tasks:
+    - name: create a user
+      ansible.builtin.user:
+        name: "{{USRNM}}"
+        comment: "{{COMM}}"
+      register: useroutput
+
+    - name: print the user
+      debug:
+        var: useroutput
+
+    - name: print the user name only
+      debug:
+        var: useroutput.name
+    - name: print the comment
+      debug:
+        var: useroutput.comment

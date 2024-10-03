@@ -1,0 +1,121 @@
+---
+- name: Provisioning servers
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install ntp agent on centos
+      ansible.builtin.yum:
+        name: "{{item}}"
+        state: present
+      when: ansible_distribution == "CentOS"
+      loop:
+        - chrony
+        - wget
+        - git
+        - zip
+        - unzip
+
+    - name: Install ntp agent on Ubuntu
+      ansible.builtin.apt:
+        name: "{{item}}"
+        state: present
+        update_cache: yes
+      when: ansible_distribution == "Ubuntu"
+      loop:
+        - ntp
+        - wget
+        - git
+        - zip
+        - unzip
+
+    - name: Install ntp agent on Amazon
+      ansible.builtin.yum:
+        name: "{{item}}"
+        state: present
+      when: ansible_distribution == "Amazon"
+      loop:
+        - ntp
+        - wget
+        - git
+        - zip
+        - unzip
+
+    - name: Start the service on Centos
+      ansible.builtin.service:
+        name: chronyd
+        state: started
+        enabled: yes
+      when: ansible_distribution == "CentOS"
+
+    - name: Start the service on Ubuntu
+      ansible.builtin.service:
+        name: ntp
+        state: started
+        enabled: yes
+      when: ansible_distribution == "Ubuntu"
+
+    - name: Start the service on Amazon
+      ansible.builtin.service:
+        name: ntpd
+        state: started
+        enabled: yes
+      when: ansible_distribution == "Amazon"
+
+    - name: Banner File
+      ansible.builtin.copy:
+        content: "# This sever is managed by ansible.No manual changes"
+        dest: /etc/motd
+
+    - name: Create a Folder
+      ansible.builtin.file:
+        path: /opt/test24
+        state: directory
+
+    - name: Deploy ntp agent conf on CentOS
+      template:
+        src: templates/ntpconf_centos
+        dest: /etc/chrony.conf
+        backup: yes
+      when: ansible_distribution == "CentOS"
+      notify:
+        - Restart the service on Centos
+
+    - name: Deploy ntp agent conf on Ubuntu
+      template:
+        src: templates/ntpconf_ubuntu
+        dest: /etc/ntp.conf
+        backup: yes
+      when: ansible_distribution == "Ubuntu"
+      notify:
+        - Restart the service on Ubuntu
+
+    - name: Deploy ntp agent conf on Amazon
+      template:
+        src: templates/ntpconf_amazon
+        dest: /etc/ntp.conf
+        backup: yes
+      when: ansible_distribution == "Amazon"
+      notify:
+        - Restart the service on Amazon
+
+  handlers:
+    - name: Restart the service on Centos
+      ansible.builtin.service:
+        name: chronyd
+        state: restarted
+        enabled: yes
+      when: ansible_distribution == "CentOS"
+
+    - name: Restart the service on Ubuntu
+      ansible.builtin.service:
+        name: ntp
+        state: restarted
+        enabled: yes
+      when: ansible_distribution == "Ubuntu"
+
+    - name: Restart the service on Amazon
+      ansible.builtin.service:
+        name: ntpd
+        state: restarted
+        enabled: yes
+      when: ansible_distribution == "Amazon"

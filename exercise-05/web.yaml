@@ -1,0 +1,22 @@
+---
+- name: WebServer-Setup
+  hosts: webservers
+  become: yes
+  tasks:
+    - name: Install Httpd
+      ansible.builtin.yum:
+        name: httpd
+        state: present
+
+    - name: Start the Httpd Service
+      ansible.builtin.service:
+        name: httpd
+        state: started
+        enabled: yes
+    - name: Copy index
+      copy:
+        src: files/index.html
+        dest:
+          /var/www/html/index.html
+          #https://docs.ansible.com/ansible/2.9/modules/copy_module.html#copy-module
+        backup: yes
